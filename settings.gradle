@@ -36,6 +36,7 @@ include ':parser:transcript'
 
 include ':playback:base'
 include ':playback:cast'
+include ':playback:denoiser'
 include ':playback:service'
 
 include ':storage:database'
