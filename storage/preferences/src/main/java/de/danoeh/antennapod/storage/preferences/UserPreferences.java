@@ -63,6 +63,9 @@ public abstract class UserPreferences {
     public static final String PREF_BACK_OPENS_DRAWER = "prefBackButtonOpensDrawer";
     public static final String PREF_BOTTOM_NAVIGATION = "prefBottomNavigation";
 
+    // Shiur Player fork — speech cleanup (GTCRN denoiser)
+    public static final String PREF_SHIUR_CLEANUP_ENABLED = "prefShiurCleanupEnabled";
+
     public static final String PREF_GLOBAL_DEFAULT_SORTED_ORDER = "prefGlobalDefaultSortedOrder";
     public static final String PREF_QUEUE_KEEP_SORTED = "prefQueueKeepSorted";
     public static final String PREF_QUEUE_KEEP_SORTED_ORDER = "prefQueueKeepSortedOrder";
@@ -335,6 +338,11 @@ public abstract class UserPreferences {
      */
     public static boolean isPersistNotify() {
         return prefs.getBoolean(PREF_PERSISTENT_NOTIFICATION, true);
+    }
+
+    /** Shiur Player fork — whether the GTCRN speech-cleanup AudioProcessor should process audio. */
+    public static boolean isShiurCleanupEnabled() {
+        return prefs.getBoolean(PREF_SHIUR_CLEANUP_ENABLED, true);
     }
 
     /**

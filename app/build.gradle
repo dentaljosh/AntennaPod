@@ -9,6 +9,16 @@ android {
     namespace "de.danoeh.antennapod"
 
     defaultConfig {
+        // Shiur Player fork — installs alongside real AntennaPod via a distinct applicationId. The Java
+        // namespace above stays on de.danoeh.antennapod so R-class references and all internal packages
+        // remain unchanged; only the install identity differs.
+        applicationId "org.shiurcleanup.antennapod"
+
+        // Raise minSdk from the common.gradle floor of 23 to 24. Required because :playback:denoiser
+        // depends on onnxruntime-android 1.24.3 which sets minSdk 24. Reaches Android 7.0+, which is
+        // still ~99% of active devices.
+        minSdk 24
+
         // Version code schema:
         // "1.2.3-beta4"    -> 1020304
         // "1.2.3"          -> 1020395
@@ -36,10 +46,14 @@ android {
     buildTypes {
         debug {
             applicationIdSuffix ".debug"
-            resValue "string", "provider_authority", "de.danoeh.antennapod.debug.provider"
+            // Shiur Player fork: provider_authority and app_name must match the forked applicationId to
+            // avoid collisions with a co-installed real AntennaPod.
+            resValue "string", "provider_authority", "org.shiurcleanup.antennapod.debug.provider"
+            resValue "string", "app_name", "Shiur Player Debug"
         }
         release {
-            resValue "string", "provider_authority", "de.danoeh.antennapod.provider"
+            resValue "string", "provider_authority", "org.shiurcleanup.antennapod.provider"
+            resValue "string", "app_name", "Shiur Player"
             minifyEnabled true
             shrinkResources true
             signingConfig signingConfigs.releaseConfig
@@ -51,7 +65,11 @@ android {
                 'RestrictedApi', 'ExportedReceiver', 'NotifyDataSetChanged', 'UseCompoundDrawables', 'NestedWeights',
                 'Overdraw', 'UselessParent', 'TextFields', 'AlwaysShowAction', 'Autofill', 'ClickableViewAccessibility',
                 'KeyboardInaccessibleWidget', 'LabelFor', 'SetTextI18n', 'HardcodedText', 'RelativeOverlap',
-                'RtlHardcoded', 'RtlEnabled', 'ContentDescription'
+                'RtlHardcoded', 'RtlEnabled', 'ContentDescription',
+                // Shiur Player fork: minSdk raised from 23 to 24 by :playback:denoiser (onnxruntime-android
+                // floor). SDK_INT >= N checks in the existing codebase become formally obsolete; leaving
+                // them in place documents the original intent and keeps the diff narrow.
+                'ObsoleteSdkInt'
     }
 
     androidResources {

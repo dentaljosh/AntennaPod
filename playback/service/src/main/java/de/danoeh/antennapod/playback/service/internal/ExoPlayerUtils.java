@@ -37,7 +37,7 @@ public class ExoPlayerUtils {
         ProgressiveMediaSource.Factory mediaSourceFactory = new ProgressiveMediaSource.Factory(
                 new DefaultDataSource.Factory(context, httpDataSourceFactory), extractorsFactory);
 
-        return new ExoPlayer.Builder(context)
+        return new ExoPlayer.Builder(context, new ShiurRenderersFactory(context))
                 .setLoadControl(new DefaultLoadControl.Builder()
                         .setBufferDurationsMs(
                                 (int) (UserPreferences.getFastForwardSecs() * 1000L),

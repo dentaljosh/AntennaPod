@@ -1032,4 +1032,9 @@
 
     <string name="echo_share_heading">My favorite podcasts</string>
     <string name="echo_share">My year %d in podcasts. #AntennaPodEcho</string>
+
+    <!-- Shiur Player fork — speech cleanup (GTCRN denoiser) -->
+    <string name="pref_shiur_cleanup_category" translatable="false">Speech cleanup</string>
+    <string name="pref_shiur_cleanup_title" translatable="false">Enable speech cleanup</string>
+    <string name="pref_shiur_cleanup_sum" translatable="false">Runs a neural denoiser (GTCRN) on playback audio to reduce noise and reverb in speech recordings. Only affects 16 kHz mono sources; other content passes through unchanged.</string>
 </resources>

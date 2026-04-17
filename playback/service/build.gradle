@@ -21,6 +21,7 @@ dependencies {
     implementation project(':net:sync:service-interface')
     implementation project(':playback:base')
     implementation project(':playback:cast')
+    implementation project(':playback:denoiser')
     implementation project(':storage:database')
     implementation project(':storage:preferences')
     implementation project(':ui:app-start-intent')
