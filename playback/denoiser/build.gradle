@@ -5,10 +5,17 @@ apply from: "../../common.gradle"
 
 android {
     namespace "org.shiurcleanup.denoiser"
+
+    defaultConfig {
+        // ONNX Runtime Android 1.24.3 requires minSdk 24. Project-wide minSdk is 23; this raises the
+        // floor for anything depending on :playback:denoiser.
+        minSdk 24
+    }
 }
 
 dependencies {
     implementation "com.microsoft.onnxruntime:onnxruntime-android:1.24.3"
+    implementation "androidx.media3:media3-common:$media3Version"
     annotationProcessor "androidx.annotation:annotation:$annotationVersion"
 
     testImplementation "junit:junit:$junitVersion"
