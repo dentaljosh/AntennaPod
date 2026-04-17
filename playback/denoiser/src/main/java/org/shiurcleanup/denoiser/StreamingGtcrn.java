@@ -15,12 +15,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Sample-level streaming counterpart of {@link GtcrnPipeline}. Accepts mono 16 kHz float32 PCM via
- * {@link #feed}; emits finalized enhanced samples to a {@link FloatChunkSink} as each frame's output
- * falls off the overlap-add window. Peak memory is O(FFT_SIZE) — no full-file buffers.
+ * Sample-level streaming GTCRN. Accepts mono 16 kHz float32 PCM via {@link #feed}; emits finalized
+ * enhanced samples to a {@link FloatChunkSink} as each frame's output falls off the overlap-add
+ * window. Peak memory is O(FFT_SIZE) — no full-file buffers.
  *
- * Produces the same output as the batch pipeline for the same input (zero-padded on both sides with
- * PAD_SIZE samples) so the benchmark path can continue using {@link GtcrnPipeline} and match bit-for-bit.
+ * <p>Produces the same output as the equivalent batch pipeline for the same input (zero-padded on
+ * both sides with PAD_SIZE samples).
  */
 public final class StreamingGtcrn implements Closeable {
     public static final int SAMPLE_RATE = 16_000;
@@ -85,7 +85,9 @@ public final class StreamingGtcrn implements Closeable {
     }
 
     void finish(FloatChunkSink sink) throws IOException, OrtException {
-        if (finished) return;
+        if (finished) {
+            return;
+        }
         finished = true;
         // Pad virtual input on the right with PAD_SIZE zeros so the last hop's output fully finalises.
         long virtualEnd = inputSamplesSeen + PAD_SIZE;
@@ -121,7 +123,7 @@ public final class StreamingGtcrn implements Closeable {
             }
         }
 
-        long stftStart = SystemClock.elapsedRealtime();
+        final long stftStart = SystemClock.elapsedRealtime();
         for (int i = 0; i < FFT_SIZE; i++) {
             real[i] = inputWindow[i] * window[i];
             imag[i] = 0.0f;
@@ -130,12 +132,16 @@ public final class StreamingGtcrn implements Closeable {
         packSpectrum(real, imag, mix);
         stftMs += SystemClock.elapsedRealtime() - stftStart;
 
-        long inferStart = SystemClock.elapsedRealtime();
+        final long inferStart = SystemClock.elapsedRealtime();
         try (
-            OnnxTensor mixTensor = OnnxTensor.createTensor(environment, FloatBuffer.wrap(mix), MIX_SHAPE);
-            OnnxTensor convCacheTensor = OnnxTensor.createTensor(environment, FloatBuffer.wrap(convCache), CONV_CACHE_SHAPE);
-            OnnxTensor traCacheTensor = OnnxTensor.createTensor(environment, FloatBuffer.wrap(traCache), TRA_CACHE_SHAPE);
-            OnnxTensor interCacheTensor = OnnxTensor.createTensor(environment, FloatBuffer.wrap(interCache), INTER_CACHE_SHAPE)
+                OnnxTensor mixTensor = OnnxTensor.createTensor(
+                        environment, FloatBuffer.wrap(mix), MIX_SHAPE);
+                OnnxTensor convCacheTensor = OnnxTensor.createTensor(
+                        environment, FloatBuffer.wrap(convCache), CONV_CACHE_SHAPE);
+                OnnxTensor traCacheTensor = OnnxTensor.createTensor(
+                        environment, FloatBuffer.wrap(traCache), TRA_CACHE_SHAPE);
+                OnnxTensor interCacheTensor = OnnxTensor.createTensor(
+                        environment, FloatBuffer.wrap(interCache), INTER_CACHE_SHAPE)
         ) {
             Map<String, OnnxTensor> inputs = new LinkedHashMap<>();
             inputs.put("mix", mixTensor);
@@ -144,10 +150,10 @@ public final class StreamingGtcrn implements Closeable {
             inputs.put("inter_cache", interCacheTensor);
 
             try (Result result = session.run(inputs)) {
-                float[][][][] enh = (float[][][][]) result.get(0).getValue();
-                float[][][][][] convCacheOut = (float[][][][][]) result.get(1).getValue();
-                float[][][][][] traCacheOut = (float[][][][][]) result.get(2).getValue();
-                float[][][][] interCacheOut = (float[][][][]) result.get(3).getValue();
+                final float[][][][] enh = (float[][][][]) result.get(0).getValue();
+                final float[][][][][] convCacheOut = (float[][][][][]) result.get(1).getValue();
+                final float[][][][][] traCacheOut = (float[][][][][]) result.get(2).getValue();
+                final float[][][][] interCacheOut = (float[][][][]) result.get(3).getValue();
 
                 unpackSpectrum(enh, real, imag);
                 flatten(convCacheOut, convCache);
@@ -199,7 +205,9 @@ public final class StreamingGtcrn implements Closeable {
     }
 
     private void flushBatch(FloatChunkSink sink) throws IOException {
-        if (outBatchLen == 0) return;
+        if (outBatchLen == 0) {
+            return;
+        }
         sink.accept(outBatch, 0, outBatchLen);
         outBatchLen = 0;
     }
@@ -208,7 +216,9 @@ public final class StreamingGtcrn implements Closeable {
         // Drop samples we'll never read again. Frame `framesProcessed` (next to run) covers real-input
         // positions starting at framesProcessed*HOP - PAD_SIZE; keep everything from there onward.
         long keepFrom = (long) framesProcessed * HOP_SIZE - PAD_SIZE;
-        if (keepFrom <= pendingStart) return;
+        if (keepFrom <= pendingStart) {
+            return;
+        }
         int drop = (int) (keepFrom - pendingStart);
         if (drop >= pendingLen) {
             pendingLen = 0;
@@ -221,9 +231,13 @@ public final class StreamingGtcrn implements Closeable {
     }
 
     private void ensurePendingCapacity(int minCapacity) {
-        if (pending.length >= minCapacity) return;
+        if (pending.length >= minCapacity) {
+            return;
+        }
         int newCap = pending.length;
-        while (newCap < minCapacity) newCap *= 2;
+        while (newCap < minCapacity) {
+            newCap *= 2;
+        }
         float[] next = new float[newCap];
         System.arraycopy(pending, 0, next, 0, pendingLen);
         pending = next;

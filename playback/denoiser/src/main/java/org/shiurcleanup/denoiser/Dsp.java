@@ -63,25 +63,25 @@ final class Dsp {
 
         for (int len = 2; len <= n; len <<= 1) {
             double angle = (inverse ? 2.0 : -2.0) * Math.PI / len;
-            float wLenCos = (float) Math.cos(angle);
-            float wLenSin = (float) Math.sin(angle);
+            float wlenCos = (float) Math.cos(angle);
+            float wlenSin = (float) Math.sin(angle);
             for (int i = 0; i < n; i += len) {
-                float wCos = 1.0f;
-                float wSin = 0.0f;
+                float wcos = 1.0f;
+                float wsin = 0.0f;
                 for (int k = 0; k < len / 2; k++) {
                     int u = i + k;
                     int v = u + len / 2;
-                    float vr = real[v] * wCos - imag[v] * wSin;
-                    float vi = real[v] * wSin + imag[v] * wCos;
+                    float vr = real[v] * wcos - imag[v] * wsin;
+                    float vi = real[v] * wsin + imag[v] * wcos;
                     real[v] = real[u] - vr;
                     imag[v] = imag[u] - vi;
                     real[u] += vr;
                     imag[u] += vi;
 
-                    float nextCos = wCos * wLenCos - wSin * wLenSin;
-                    float nextSin = wCos * wLenSin + wSin * wLenCos;
-                    wCos = nextCos;
-                    wSin = nextSin;
+                    float nextCos = wcos * wlenCos - wsin * wlenSin;
+                    float nextSin = wcos * wlenSin + wsin * wlenCos;
+                    wcos = nextCos;
+                    wsin = nextSin;
                 }
             }
         }

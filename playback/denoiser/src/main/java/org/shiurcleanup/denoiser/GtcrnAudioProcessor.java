@@ -1,7 +1,6 @@
 package org.shiurcleanup.denoiser;
 
 import androidx.media3.common.C;
-import androidx.media3.common.audio.AudioProcessor;
 import androidx.media3.common.audio.BaseAudioProcessor;
 import androidx.media3.common.util.UnstableApi;
 
@@ -10,12 +9,13 @@ import ai.onnxruntime.OrtException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.function.BooleanSupplier;
 
 /**
- * Media3 {@link AudioProcessor} that runs {@link StreamingGtcrn} inline on the audio pipeline. Accepts
- * only 16 kHz mono 16-bit PCM; anything else causes {@link #onConfigure} to throw, which tells Media3 to
- * omit this processor from the chain. Upstream processors (resampler, downmixer) must normalize the
- * format first.
+ * Media3 {@link androidx.media3.common.audio.AudioProcessor} that runs {@link StreamingGtcrn} inline
+ * on the audio pipeline. Accepts only 16 kHz mono 16-bit PCM; anything else causes
+ * {@link #onConfigure} to throw, which tells Media3 to omit this processor from the chain. Upstream
+ * processors (resampler, downmixer) must normalize the format first.
  *
  * <p>Threading: Media3 invokes {@link #queueInput} on the audio playback thread. GTCRN inference
  * currently runs synchronously on that thread. On mid-range devices under sustained thermal load the
@@ -26,6 +26,7 @@ import java.nio.ByteOrder;
 public final class GtcrnAudioProcessor extends BaseAudioProcessor {
 
     private final byte[] modelBytes;
+    private final BooleanSupplier enabledCheck;
 
     private StreamingGtcrn denoiser;
 
@@ -48,11 +49,22 @@ public final class GtcrnAudioProcessor extends BaseAudioProcessor {
         outputFloatsLen += len;
     };
 
-    public GtcrnAudioProcessor(byte[] modelBytes) {
+    /**
+     * @param modelBytes the GTCRN ONNX model bytes. Must be non-empty.
+     * @param enabledCheck polled on every {@link #queueInput} call; when it returns {@code false},
+     *                     this processor copies input to output unchanged (pure passthrough, ONNX
+     *                     session stays warm). Cheaper than tearing the session down and recreating it
+     *                     when the user toggles cleanup on/off mid-episode.
+     */
+    public GtcrnAudioProcessor(byte[] modelBytes, BooleanSupplier enabledCheck) {
         if (modelBytes == null || modelBytes.length == 0) {
             throw new IllegalArgumentException("modelBytes must be non-empty");
         }
+        if (enabledCheck == null) {
+            throw new IllegalArgumentException("enabledCheck must be non-null");
+        }
         this.modelBytes = modelBytes;
+        this.enabledCheck = enabledCheck;
     }
 
     @Override
@@ -79,6 +91,22 @@ public final class GtcrnAudioProcessor extends BaseAudioProcessor {
         if (bytesRemaining == 0) {
             return;
         }
+
+        if (!enabledCheck.getAsBoolean()) {
+            // Cleanup toggled off. Copy input bytes straight to output; keep the ONNX session warm so
+            // re-enabling is instant. Note: passthrough doesn't reset the cache — if the user toggles
+            // off during playback, runs for a while, then toggles back on, the model caches will still
+            // reflect the pre-toggle audio and produce a few frames of artifact before recovering.
+            // Acceptable trade-off for a global toggle; reset the pipeline on track-change via onFlush.
+            int outBytes = bytesRemaining;
+            ByteBuffer out = replaceOutputBuffer(outBytes).order(ByteOrder.nativeOrder());
+            ByteBuffer src = inputBuffer.slice().order(ByteOrder.nativeOrder());
+            out.put(src);
+            out.flip();
+            inputBuffer.position(inputBuffer.position() + bytesRemaining);
+            return;
+        }
+
         int sampleCount = bytesRemaining / 2;
         if (inputScratch.length < sampleCount) {
             inputScratch = new float[sampleCount];
@@ -157,7 +185,9 @@ public final class GtcrnAudioProcessor extends BaseAudioProcessor {
         outputFloatsLen = 0;
     }
 
-    /** Emit {@code sampleCount} zero samples — used only when queueInput hits an unrecoverable error. */
+    /**
+     * Emit {@code sampleCount} zero samples — used only when queueInput hits an unrecoverable error.
+     */
     private void writeSilence(int sampleCount) {
         int outBytes = sampleCount * 2;
         ByteBuffer out = replaceOutputBuffer(outBytes).order(ByteOrder.nativeOrder());

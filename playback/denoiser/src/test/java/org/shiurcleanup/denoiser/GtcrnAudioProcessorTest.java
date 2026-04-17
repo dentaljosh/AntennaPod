@@ -23,7 +23,7 @@ public class GtcrnAudioProcessorTest {
 
     @Test
     public void rejectsWrongSampleRate() {
-        GtcrnAudioProcessor processor = new GtcrnAudioProcessor(DUMMY_MODEL_BYTES);
+        GtcrnAudioProcessor processor = new GtcrnAudioProcessor(DUMMY_MODEL_BYTES, () -> true);
         AudioProcessor.AudioFormat format48k = new AudioProcessor.AudioFormat(
                 48_000, 1, C.ENCODING_PCM_16BIT);
         assertThrows(AudioProcessor.UnhandledAudioFormatException.class,
@@ -32,7 +32,7 @@ public class GtcrnAudioProcessorTest {
 
     @Test
     public void rejectsStereo() {
-        GtcrnAudioProcessor processor = new GtcrnAudioProcessor(DUMMY_MODEL_BYTES);
+        GtcrnAudioProcessor processor = new GtcrnAudioProcessor(DUMMY_MODEL_BYTES, () -> true);
         AudioProcessor.AudioFormat stereoFormat = new AudioProcessor.AudioFormat(
                 16_000, 2, C.ENCODING_PCM_16BIT);
         assertThrows(AudioProcessor.UnhandledAudioFormatException.class,
@@ -41,7 +41,7 @@ public class GtcrnAudioProcessorTest {
 
     @Test
     public void rejectsFloatEncoding() {
-        GtcrnAudioProcessor processor = new GtcrnAudioProcessor(DUMMY_MODEL_BYTES);
+        GtcrnAudioProcessor processor = new GtcrnAudioProcessor(DUMMY_MODEL_BYTES, () -> true);
         AudioProcessor.AudioFormat floatFormat = new AudioProcessor.AudioFormat(
                 16_000, 1, C.ENCODING_PCM_FLOAT);
         assertThrows(AudioProcessor.UnhandledAudioFormatException.class,
@@ -51,14 +51,24 @@ public class GtcrnAudioProcessorTest {
     @Test
     public void rejectsEmptyModelBytes() {
         try {
-            new GtcrnAudioProcessor(new byte[0]);
+            new GtcrnAudioProcessor(new byte[0], () -> true);
             fail("Expected IllegalArgumentException for empty model bytes");
         } catch (IllegalArgumentException expected) {
             // pass
         }
         try {
-            new GtcrnAudioProcessor(null);
+            new GtcrnAudioProcessor(null, () -> true);
             fail("Expected IllegalArgumentException for null model bytes");
+        } catch (IllegalArgumentException expected) {
+            // pass
+        }
+    }
+
+    @Test
+    public void rejectsNullEnabledCheck() {
+        try {
+            new GtcrnAudioProcessor(DUMMY_MODEL_BYTES, null);
+            fail("Expected IllegalArgumentException for null enabledCheck");
         } catch (IllegalArgumentException expected) {
             // pass
         }
