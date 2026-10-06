@@ -20,6 +20,7 @@ import com.google.android.gms.cast.framework.media.RemoteMediaClient;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.images.WebImage;
+import de.danoeh.antennapod.playback.base.ArtworkProvider;
 import de.danoeh.antennapod.playback.base.MediaItemAdapter;
 
 public class CastPlayerWrapper {
@@ -84,7 +85,7 @@ public class CastPlayerWrapper {
                 metadata.putString(CastMediaMetadata.KEY_SUBTITLE, mediaItem.mediaMetadata.subtitle.toString());
             }
             if (mediaItem.mediaMetadata.artworkUri != null) {
-                metadata.addImage(new WebImage(mediaItem.mediaMetadata.artworkUri));
+                metadata.addImage(new WebImage(ArtworkProvider.toRemoteUri(mediaItem.mediaMetadata.artworkUri)));
             }
             if (!mediaItem.mediaId.isEmpty()) {
                 metadata.putString(KEY_MEDIA_ID, mediaItem.mediaId);

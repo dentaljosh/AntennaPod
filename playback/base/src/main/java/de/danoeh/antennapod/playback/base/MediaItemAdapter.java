@@ -77,7 +77,7 @@ public class MediaItemAdapter {
             }
         }
         if (playable.getImageLocation() != null && playable.getImageLocation().startsWith("http")) {
-            metadataBuilder.setArtworkUri(Uri.parse(playable.getImageLocation()));
+            metadataBuilder.setArtworkUri(ArtworkProvider.toContentUri(context, playable.getImageLocation()));
         }
         Bundle extras = new Bundle();
         extras.putString(KEY_STREAM_URL, playable.getStreamUrl());
@@ -167,7 +167,7 @@ public class MediaItemAdapter {
             bitmap.compress(Bitmap.CompressFormat.JPEG, 90, bos);
             metadataBuilder.setArtworkData(bos.toByteArray(), MediaMetadata.PICTURE_TYPE_FRONT_COVER);
         } else if (feed.getImageUrl() != null && feed.getImageUrl().startsWith("http")) {
-            metadataBuilder.setArtworkUri(Uri.parse(feed.getImageUrl()));
+            metadataBuilder.setArtworkUri(ArtworkProvider.toContentUri(context, feed.getImageUrl()));
         }
         metadataBuilder.setSubtitle(feed.getAuthor());
         metadataBuilder.setIsBrowsable(true);
