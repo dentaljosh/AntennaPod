@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <Preference
+        android:key="prefAutomotiveSearch"
+        android:title="@string/search_online"
+        android:icon="@drawable/ic_search" />
+
+    <Preference
+        android:key="prefAutomotiveAddUrl"
+        android:title="@string/add_podcast_by_url"
+        android:icon="@drawable/ic_add" />
+
+    <Preference
+        android:key="prefAutomotiveRefresh"
+        android:title="@string/refresh_label"
+        android:icon="@drawable/ic_refresh" />
+
+    <Preference
+        android:key="prefScreenSynchronization"
+        android:title="@string/synchronization_pref"
+        android:icon="@drawable/ic_cloud" />
+
+    <de.danoeh.antennapod.ui.preferences.preference.MaterialMultiSelectListPreference
+        android:defaultValue="@array/mobile_update_default_value"
+        android:entries="@array/mobile_update_entries"
+        android:entryValues="@array/mobile_update_values"
+        android:key="prefMobileUpdateTypes"
+        android:summary="@string/pref_mobileUpdate_sum"
+        android:title="@string/pref_mobileUpdate_title" />
+
+</PreferenceScreen>

@@ -18,6 +18,7 @@ dependencyResolutionManagement {
 
 include ':app'
 include ':app-wearos'
+include ':app-automotive'
 
 include ':event'
 include ':model'

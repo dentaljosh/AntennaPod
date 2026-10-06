@@ -1065,4 +1065,7 @@
     <string name="wearos_play_on_phone" tools:ignore="UnusedResources">Play on phone</string>
     <string name="wearos_browse_phone" tools:ignore="UnusedResources">Browse phone</string>
     <string name="wearos_open_on_phone" tools:ignore="UnusedResources">Open on phone</string>
+
+    <!-- Android Automotive specific strings (unused in main app module, so we need to suppress the warnings) -->
+    <string name="automotive_subscribed_to_podcast" tools:ignore="UnusedResources">Subscribed to \"%1$s\"</string>
 </resources>
